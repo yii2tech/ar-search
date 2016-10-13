@@ -51,6 +51,12 @@ class ActiveSearchModel extends Model
      * This could be a data provider instance or its DI compatible configuration.
      */
     public $dataProvider;
+    /**
+     * @var array|string list of search attributes, which are allowed to be filter by comparison with operators `>`, `<`, `=` and so on.
+     * By default `*` is set, meaning any integer or float attribute is allowed for comparison.
+     * Filter will be applied using `andFilterCompare()` query method.
+     */
+    public $compareAllowedAttributes = '*';
 
     /**
      * @var ActiveRecordInterface|Model|array|string|callable model to be used for filter attributes validation.
@@ -316,10 +322,18 @@ class ActiveSearchModel extends Model
                     call_user_func($filterOperators[$type], $query, $attribute, $this->{$attribute});
                 }
             } else {
-                if (in_array($type, [self::TYPE_INTEGER, self::TYPE_FLOAT]) && $query->hasMethod('andFilterCompare')) {
-                    $query->andFilterCompare($attribute, $this->{$attribute});
+                if ($this->compareAllowedAttributes === '*') {
+                    if (in_array($type, [self::TYPE_INTEGER, self::TYPE_FLOAT])) {
+                        $query->andFilterCompare($attribute, $this->{$attribute});
+                    } else {
+                        $query->andFilterWhere([$attribute => $this->{$attribute}]);
+                    }
                 } else {
-                    $query->andFilterWhere([$attribute => $this->{$attribute}]);
+                    if (in_array($attribute, $this->compareAllowedAttributes, true)) {
+                        $query->andFilterCompare($attribute, $this->{$attribute});
+                    } else {
+                        $query->andFilterWhere([$attribute => $this->{$attribute}]);
+                    }
                 }
             }
         }
@@ -369,7 +383,17 @@ class ActiveSearchModel extends Model
             if ($validator instanceof FilterValidator || $validator instanceof RangeValidator) {
                 $rules[] = $validator;
             } elseif ($validator instanceof NumberValidator) {
-                $rules[] = [$validator->attributes, NumberCompareValidator::className(), 'integerOnly' => $validator->integerOnly];
+                if ($this->compareAllowedAttributes === '*') {
+                    $rules[] = [$validator->attributes, NumberCompareValidator::className(), 'integerOnly' => $validator->integerOnly];
+                } else {
+                    foreach ($validator->attributes as $attribute) {
+                        if (in_array($attribute, $this->compareAllowedAttributes, true)) {
+                            $rules[] = [$attribute, NumberCompareValidator::className(), 'integerOnly' => $validator->integerOnly];
+                        } else {
+                            $rules[] = [$attribute, NumberValidator::className(), 'integerOnly' => $validator->integerOnly];
+                        }
+                    }
+                }
                 $type = $validator->integerOnly ? self::TYPE_INTEGER : self::TYPE_FLOAT;
             } elseif ($validator instanceof BooleanValidator) {
                 $rules[] = $validator;
