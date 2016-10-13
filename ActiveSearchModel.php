@@ -19,6 +19,7 @@ use yii\validators\FilterValidator;
 use yii\validators\NumberValidator;
 use yii\validators\RangeValidator;
 use yii\validators\StringValidator;
+use yii2tech\ar\search\validators\NumberCompareValidator;
 
 /**
  * ActiveSearchModel
@@ -368,7 +369,7 @@ class ActiveSearchModel extends Model
             if ($validator instanceof FilterValidator || $validator instanceof RangeValidator) {
                 $rules[] = $validator;
             } elseif ($validator instanceof NumberValidator) {
-                $rules[] = $validator;
+                $rules[] = [$validator->attributes, NumberCompareValidator::className(), 'integerOnly' => $validator->integerOnly];
                 $type = $validator->integerOnly ? self::TYPE_INTEGER : self::TYPE_FLOAT;
             } elseif ($validator instanceof BooleanValidator) {
                 $rules[] = $validator;

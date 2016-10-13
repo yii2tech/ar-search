@@ -219,9 +219,6 @@ class ActiveSearchModelTest extends TestCase
         $searchModel = new ActiveSearchModel();
         $searchModel->setModel(Item::className());
         $searchModel->setFormName('');
-        $searchModel->setRules([
-            [['name', 'status', 'price'], 'safe']
-        ]);
 
         $dataProvider = $searchModel->search(['name' => '', 'status' => '>2', 'price' => '']);
         $this->assertEquals(6, $dataProvider->getTotalCount());
