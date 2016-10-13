@@ -29,6 +29,7 @@ use yii2tech\ar\search\validators\NumberCompareValidator;
  * @property array $searchAttributeTypes array search attribute types in format: `[attribute => type]`.
  * @property array $rules validation rules in format of [[rules()]] return value.
  * @property array $filterOperators array filter operators in format: `[type => operator]`.
+ * @property array|string $compareAllowedAttributes list of search attributes, which are allowed to be filter by comparison with operators `>`, `<`, `=` and so on.
  *
  * @author Paul Klimov <klimov.paul@gmail.com>
  * @since 1.0
@@ -51,12 +52,6 @@ class ActiveSearchModel extends Model
      * This could be a data provider instance or its DI compatible configuration.
      */
     public $dataProvider;
-    /**
-     * @var array|string list of search attributes, which are allowed to be filter by comparison with operators `>`, `<`, `=` and so on.
-     * By default `*` is set, meaning any integer or float attribute is allowed for comparison.
-     * Filter will be applied using `andFilterCompare()` query method.
-     */
-    public $compareAllowedAttributes = '*';
 
     /**
      * @var ActiveRecordInterface|Model|array|string|callable model to be used for filter attributes validation.
@@ -99,6 +94,12 @@ class ActiveSearchModel extends Model
      * ```
      */
     private $_filterOperators;
+    /**
+     * @var array|string list of search attributes, which are allowed to be filter by comparison with operators `>`, `<`, `=` and so on.
+     * By default `*` is set, meaning any integer or float attribute is allowed for comparison.
+     * Filter will be applied using `andFilterCompare()` query method.
+     */
+    private $_compareAllowedAttributes;
 
 
     /**
@@ -242,6 +243,35 @@ class ActiveSearchModel extends Model
         ];
     }
 
+    /**
+     * @return array|string list of attribute names, which allows filtering via comparison.
+     */
+    public function getCompareAllowedAttributes()
+    {
+        if ($this->_compareAllowedAttributes === null) {
+            if ($this->hasModel()) {
+                /* @var $query \yii\db\ActiveQueryInterface|\yii\base\Object */
+                $query = $this->getModel()->find();
+                if ($query->hasMethod('andFilterCompare')) {
+                    $this->_compareAllowedAttributes = '*';
+                } else {
+                    $this->_compareAllowedAttributes = [];
+                }
+            } else {
+                $this->_compareAllowedAttributes = '*';
+            }
+        }
+        return $this->_compareAllowedAttributes;
+    }
+
+    /**
+     * @param array|string $compareAllowedAttributes list of attribute names, which allows filtering via comparison.
+     */
+    public function setCompareAllowedAttributes($compareAllowedAttributes)
+    {
+        $this->_compareAllowedAttributes = $compareAllowedAttributes;
+    }
+
     // Model specific :
 
     /**
@@ -301,8 +331,10 @@ class ActiveSearchModel extends Model
     {
         $dataProvider = $this->createDataProvider();
 
-        $query = $this->getModel()->find();
-        $dataProvider->query = $query;
+        if ($dataProvider->query === null) {
+            $dataProvider->query = $this->getModel()->find();
+        }
+        $query = $dataProvider->query;
 
         $this->load($params);
 
@@ -322,14 +354,14 @@ class ActiveSearchModel extends Model
                     call_user_func($filterOperators[$type], $query, $attribute, $this->{$attribute});
                 }
             } else {
-                if ($this->compareAllowedAttributes === '*') {
+                if ($this->getCompareAllowedAttributes() === '*') {
                     if (in_array($type, [self::TYPE_INTEGER, self::TYPE_FLOAT])) {
                         $query->andFilterCompare($attribute, $this->{$attribute});
                     } else {
                         $query->andFilterWhere([$attribute => $this->{$attribute}]);
                     }
                 } else {
-                    if (in_array($attribute, $this->compareAllowedAttributes, true)) {
+                    if (in_array($attribute, $this->getCompareAllowedAttributes(), true)) {
                         $query->andFilterCompare($attribute, $this->{$attribute});
                     } else {
                         $query->andFilterWhere([$attribute => $this->{$attribute}]);
@@ -537,6 +569,7 @@ class ActiveSearchModel extends Model
 
     /**
      * This method is invoked before search query is created.
+     * At this stage this model has been already successfully validated.
      * The default implementation raises the [[EVENT_AFTER_CREATE_QUERY]] event.
      * @param \yii\db\ActiveQueryInterface $query active query instance.
      */
