@@ -21,32 +21,9 @@ class NumberCompareValidator extends NumberValidator
     /**
      * @inheritdoc
      */
-    public function validateAttribute($model, $attribute)
-    {
-        $originValue = $model->$attribute;
-
-        if (preg_match('/^(<>|>=|>|<=|<|=)/', $originValue, $matches)) {
-            $operator = $matches[1];
-            $model->$attribute = substr($originValue, strlen($operator));
-            parent::validateAttribute($model, $attribute);
-            $model->$attribute = $originValue;
-        } else {
-            parent::validateAttribute($model, $attribute);
-        }
-    }
-
+    public $integerPattern = '/^\s*(<>|>=|>|<=|<|=)?\s*[+-]?\d+\s*$/';
     /**
      * @inheritdoc
      */
-    protected function validateValue($value)
-    {
-        if (is_scalar($value)) {
-            if (preg_match('/^(<>|>=|>|<=|<|=)/', "$value", $matches)) {
-                $operator = $matches[1];
-                $value = substr($value, strlen($operator));
-            }
-        }
-
-        return parent::validateValue($value);
-    }
+    public $numberPattern = '/^\s*(<>|>=|>|<=|<|=)?\s*[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?\s*$/';
 }
