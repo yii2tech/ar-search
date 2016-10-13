@@ -27,6 +27,12 @@ class ActiveSearchModelTest extends TestCase
         $formName = 'Some';
         $searchModel->setFormName($formName);
         $this->assertEquals($formName, $searchModel->getFormName());
+
+        $filterOperators = [
+            ActiveSearchModel::TYPE_STRING => 'regex'
+        ];
+        $searchModel->setFilterOperators($filterOperators);
+        $this->assertEquals($filterOperators, $searchModel->getFilterOperators());
     }
 
     public function testSetupModel()
@@ -79,6 +85,20 @@ class ActiveSearchModelTest extends TestCase
             'price' => ActiveSearchModel::TYPE_FLOAT,
         ];
         $this->assertEquals($expectedSearchAttributes, $searchModel->getSearchAttributeTypes());
+    }
+
+    /**
+     * @depends testSetup
+     */
+    public function testDefaultFilterOperators()
+    {
+        $searchModel = new ActiveSearchModel();
+
+        $expectedFilterOperators = [
+            ActiveSearchModel::TYPE_STRING => 'like',
+            ActiveSearchModel::TYPE_ARRAY => 'in',
+        ];
+        $this->assertEquals($expectedFilterOperators, $searchModel->getFilterOperators());
     }
 
     /**
@@ -166,5 +186,27 @@ class ActiveSearchModelTest extends TestCase
 
         $dataProvider = $searchModel->search(['name' => 'item', 'status' => '', 'price' => '']);
         $this->assertEquals(10, $dataProvider->getTotalCount());
+    }
+
+    /**
+     * @depends testSearch
+     */
+    public function testSearchCustomFilerOperators()
+    {
+        $searchModel = new ActiveSearchModel();
+        $searchModel->setModel(Item::className());
+        $searchModel->setFormName('');
+        $searchModel->setFilterOperators([
+            ActiveSearchModel::TYPE_STRING => function ($query, $attribute, $value) {
+                /* @var $query \yii\db\ActiveQuery */
+                $query->andFilterWhere([$attribute => $value]);
+            }
+        ]);
+
+        $dataProvider = $searchModel->search(['name' => 'item', 'status' => '', 'price' => '']);
+        $this->assertEquals(0, $dataProvider->getTotalCount());
+
+        $dataProvider = $searchModel->search(['name' => 'item5', 'status' => '', 'price' => '']);
+        $this->assertEquals(1, $dataProvider->getTotalCount());
     }
 }

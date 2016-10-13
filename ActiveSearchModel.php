@@ -27,6 +27,7 @@ use yii\validators\StringValidator;
  * @property string $formName form name to be used at [[formName()]] method.
  * @property array $searchAttributeTypes array search attribute types in format: `[attribute => type]`.
  * @property array $rules validation rules in format of [[rules()]] return value.
+ * @property array $filterOperators array filter operators in format: `[type => operator]`.
  *
  * @author Paul Klimov <klimov.paul@gmail.com>
  * @since 1.0
@@ -66,6 +67,26 @@ class ActiveSearchModel extends Model
      * @var string form name to be used at [[formName()]] method.
      */
     private $_formName;
+    /**
+     * @var array filter operators in format: `[type => operator]`.
+     * For example:
+     *
+     * ```php
+     * [
+     *     ActiveSearchModel::TYPE_STRING => 'like',
+     *     ActiveSearchModel::TYPE_ARRAY => 'in',
+     * ]
+     * ```
+     *
+     * Defined operator will be used while composing filter condition for the attribute with corresponding type.
+     *
+     * Particular operator can be a PHP callback of following format:
+     *
+     * ```php
+     * function (\yii\db\ActiveQueryInterface $query, string $attribute, mixed $value) {}
+     * ```
+     */
+    private $_filterOperators;
 
 
     /**
@@ -167,6 +188,48 @@ class ActiveSearchModel extends Model
         $this->_formName = $formName;
     }
 
+    /**
+     * @return array filter operators in format: `[type => operator]`
+     */
+    public function getFilterOperators()
+    {
+        if ($this->_filterOperators === null) {
+            $this->_filterOperators = $this->defaultFilterOperators();
+        }
+        return $this->_filterOperators;
+    }
+
+    /**
+     * @param array $filterOperators filter operators in format: `[type => operator]`
+     */
+    public function setFilterOperators($filterOperators)
+    {
+        $this->_filterOperators = $filterOperators;
+    }
+
+    /**
+     * Determines default value [[filterOperators]].
+     * @return array filter operators in format: `[type => operator]`
+     */
+    protected function defaultFilterOperators()
+    {
+        $stringOperator = 'like';
+
+        if ($this->hasModel()) {
+            $model = $this->getModel();
+            if ($model instanceof \yii\db\ActiveRecord) {
+                if ($model->getDb()->driverName === 'pgsql') {
+                    $stringOperator = 'ilike';
+                }
+            }
+        }
+
+        return [
+            self::TYPE_ARRAY => 'in',
+            self::TYPE_STRING => $stringOperator,
+        ];
+    }
+
     // Model specific :
 
     /**
@@ -236,16 +299,16 @@ class ActiveSearchModel extends Model
             return $dataProvider;
         }
 
+        $filterOperators = $this->getFilterOperators();
         foreach ($this->getSearchAttributeTypes() as $attribute => $type) {
-            switch ($type) {
-                case self::TYPE_STRING:
-                    $query->andFilterWhere(['like', $attribute, $this->{$attribute}]);
-                    break;
-                case self::TYPE_ARRAY:
-                    $query->andFilterWhere(['in', $attribute, $this->{$attribute}]);
-                    break;
-                default:
-                    $query->andFilterWhere([$attribute => $this->{$attribute}]);
+            if (isset($filterOperators[$type])) {
+                if (is_scalar($filterOperators[$type])) {
+                    $query->andFilterWhere([$filterOperators[$type], $attribute, $this->{$attribute}]);
+                } else {
+                    call_user_func($filterOperators[$type], $query, $attribute, $this->{$attribute});
+                }
+            } else {
+                $query->andFilterWhere([$attribute => $this->{$attribute}]);
             }
         }
 
