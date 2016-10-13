@@ -415,11 +415,11 @@ class ActiveSearchModel extends Model
             if ($validator instanceof FilterValidator || $validator instanceof RangeValidator) {
                 $rules[] = $validator;
             } elseif ($validator instanceof NumberValidator) {
-                if ($this->compareAllowedAttributes === '*') {
+                if ($this->getCompareAllowedAttributes() === '*') {
                     $rules[] = [$validator->attributes, NumberCompareValidator::className(), 'integerOnly' => $validator->integerOnly];
                 } else {
                     foreach ($validator->attributes as $attribute) {
-                        if (in_array($attribute, $this->compareAllowedAttributes, true)) {
+                        if (in_array($attribute, $this->getCompareAllowedAttributes(), true)) {
                             $rules[] = [$attribute, NumberCompareValidator::className(), 'integerOnly' => $validator->integerOnly];
                         } else {
                             $rules[] = [$attribute, NumberValidator::className(), 'integerOnly' => $validator->integerOnly];
