@@ -214,6 +214,22 @@ class ActiveSearchModelTest extends TestCase
     /**
      * @depends testSearch
      */
+    public function testSearchCompare()
+    {
+        $searchModel = new ActiveSearchModel();
+        $searchModel->setModel(Item::className());
+        $searchModel->setFormName('');
+        $searchModel->setRules([
+            [['name', 'status', 'price'], 'safe']
+        ]);
+
+        $dataProvider = $searchModel->search(['name' => '', 'status' => '>2', 'price' => '']);
+        $this->assertEquals(6, $dataProvider->getTotalCount());
+    }
+
+    /**
+     * @depends testSearch
+     */
     public function testAfterCreateQuery()
     {
         $searchModel = new ActiveSearchModel();

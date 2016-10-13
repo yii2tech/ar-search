@@ -315,7 +315,11 @@ class ActiveSearchModel extends Model
                     call_user_func($filterOperators[$type], $query, $attribute, $this->{$attribute});
                 }
             } else {
-                $query->andFilterWhere([$attribute => $this->{$attribute}]);
+                if (in_array($type, [self::TYPE_INTEGER, self::TYPE_FLOAT]) && $query->hasMethod('andFilterCompare')) {
+                    $query->andFilterCompare($attribute, $this->{$attribute});
+                } else {
+                    $query->andFilterWhere([$attribute => $this->{$attribute}]);
+                }
             }
         }
 
