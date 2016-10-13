@@ -12,6 +12,7 @@ use yii\base\InvalidConfigException;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
 use yii\db\ActiveRecordInterface;
+use yii\helpers\StringHelper;
 use yii\validators\BooleanValidator;
 use yii\validators\EachValidator;
 use yii\validators\FilterValidator;
@@ -23,6 +24,9 @@ use yii\validators\StringValidator;
  * ActiveSearchModel
  *
  * @property ActiveRecordInterface|Model|array|string|callable $model model to be used for filter attributes validation.
+ * @property string $formName form name to be used at [[formName()]] method.
+ * @property array $searchAttributeTypes array search attribute types in format: `[attribute => type]`.
+ * @property array $rules validation rules in format of [[rules()]] return value.
  *
  * @author Paul Klimov <klimov.paul@gmail.com>
  * @since 1.0
@@ -37,12 +41,9 @@ class ActiveSearchModel extends Model
 
     /**
      * @var ActiveDataProvider|array|callable data provider to be used.
+     * This could be a data provider instance or its DI compatible configuration.
      */
     public $dataProvider;
-    /**
-     * @var string form name to be used at [[formName()]] method.
-     */
-    public $formName = '';
 
     /**
      * @var ActiveRecordInterface|Model|array|string|callable model to be used for filter attributes validation.
@@ -53,13 +54,18 @@ class ActiveSearchModel extends Model
      */
     private $_attributes;
     /**
-     * @var array search attribute names
+     * @var array search attribute types in format: `[attribute => type]`.
+     * Result of the [[attributes()]] method of this model will be composed from this field.
      */
-    private $_searchAttributes;
+    private $_searchAttributeTypes;
     /**
      * @var array validation rules.
      */
     private $_rules;
+    /**
+     * @var string form name to be used at [[formName()]] method.
+     */
+    private $_formName;
 
 
     /**
@@ -93,22 +99,30 @@ class ActiveSearchModel extends Model
     }
 
     /**
-     * @return array
+     * @return boolean whether [[model]] is populated.
      */
-    public function getSearchAttributes()
+    public function hasModel()
     {
-        if ($this->_searchAttributes === null) {
-            $this->populateFromModel($this->getModel());
-        }
-        return $this->_searchAttributes;
+        return $this->_model !== null;
     }
 
     /**
-     * @param array $searchAttributes
+     * @return array search attributes in format: `[attribute => type]`
      */
-    public function setSearchAttributes($searchAttributes)
+    public function getSearchAttributeTypes()
     {
-        $this->_searchAttributes = $searchAttributes;
+        if ($this->_searchAttributeTypes === null) {
+            $this->populateFromModel($this->getModel());
+        }
+        return $this->_searchAttributeTypes;
+    }
+
+    /**
+     * @param array $searchAttributeTypes search attributes in format: `[attribute => type]`
+     */
+    public function setSearchAttributeTypes($searchAttributeTypes)
+    {
+        $this->_searchAttributeTypes = $searchAttributeTypes;
     }
 
     /**
@@ -130,6 +144,29 @@ class ActiveSearchModel extends Model
         $this->_rules = $rules;
     }
 
+    /**
+     * @return string form name to be used at [[formName()]] method.
+     */
+    public function getFormName()
+    {
+        if ($this->_formName === null) {
+            if ($this->hasModel()) {
+                $this->_formName = StringHelper::basename(get_class($this->getModel())) . 'Search';
+            } else {
+                $this->_formName = 'Search';
+            }
+        }
+        return $this->_formName;
+    }
+
+    /**
+     * @param string $formName form name to be used at [[formName()]] method.
+     */
+    public function setFormName($formName)
+    {
+        $this->_formName = $formName;
+    }
+
     // Model specific :
 
     /**
@@ -137,7 +174,7 @@ class ActiveSearchModel extends Model
      */
     public function attributes()
     {
-        return $this->getSearchAttributes();
+        return array_keys($this->getSearchAttributeTypes());
     }
 
     /**
@@ -145,7 +182,7 @@ class ActiveSearchModel extends Model
      */
     public function formName()
     {
-        return $this->formName;
+        return $this->getFormName();
     }
 
     /**
@@ -161,7 +198,10 @@ class ActiveSearchModel extends Model
      */
     public function attributeLabels()
     {
-        return $this->getModel()->attributeLabels();
+        if ($this->hasModel()) {
+            return $this->getModel()->attributeLabels();
+        }
+        return [];
     }
 
     /**
@@ -169,7 +209,10 @@ class ActiveSearchModel extends Model
      */
     public function attributeHints()
     {
-        return $this->getModel()->attributeHints();
+        if ($this->hasModel()) {
+            return $this->getModel()->attributeHints();
+        }
+        return [];
     }
     
     // Main :
@@ -193,7 +236,7 @@ class ActiveSearchModel extends Model
             return $dataProvider;
         }
 
-        foreach ($this->getSearchAttributes() as $attribute => $type) {
+        foreach ($this->getSearchAttributeTypes() as $attribute => $type) {
             switch ($type) {
                 case self::TYPE_STRING:
                     $query->andFilterWhere(['like', $attribute, $this->{$attribute}]);
@@ -217,8 +260,8 @@ class ActiveSearchModel extends Model
     {
         $metaData = $this->extractModelMetaData($model);
 
-        if ($this->_searchAttributes === null) {
-            $this->_searchAttributes = $metaData['attributes'];
+        if ($this->_searchAttributeTypes === null) {
+            $this->_searchAttributeTypes = $metaData['attributes'];
         }
 
         if ($this->_rules === null) {
@@ -324,7 +367,7 @@ class ActiveSearchModel extends Model
      */
     public function canGetProperty($name, $checkVars = true, $checkBehaviors = true)
     {
-        if (isset($this->getSearchAttributes()[$name])) {
+        if (isset($this->getSearchAttributeTypes()[$name])) {
             return true;
         }
         return parent::canGetProperty($name, $checkVars, $checkBehaviors);
@@ -335,7 +378,7 @@ class ActiveSearchModel extends Model
      */
     public function canSetProperty($name, $checkVars = true, $checkBehaviors = true)
     {
-        if (isset($this->getSearchAttributes()[$name])) {
+        if (isset($this->getSearchAttributeTypes()[$name])) {
             return true;
         }
         return parent::canSetProperty($name, $checkVars, $checkBehaviors);
@@ -348,7 +391,7 @@ class ActiveSearchModel extends Model
     {
         if (isset($this->_attributes[$name])) {
             return $this->_attributes[$name];
-        } elseif (isset($this->getSearchAttributes()[$name])) {
+        } elseif (isset($this->getSearchAttributeTypes()[$name])) {
             return null;
         } else {
             return parent::__get($name);
@@ -360,7 +403,7 @@ class ActiveSearchModel extends Model
      */
     public function __set($name, $value)
     {
-        if (isset($this->getSearchAttributes()[$name])) {
+        if (isset($this->getSearchAttributeTypes()[$name])) {
             $this->_attributes[$name] = $value;
         } else {
             parent::__set($name, $value);
@@ -384,7 +427,7 @@ class ActiveSearchModel extends Model
      */
     public function __unset($name)
     {
-        if (isset($this->getSearchAttributes()[$name])) {
+        if (isset($this->getSearchAttributeTypes()[$name])) {
             unset($this->_attributes[$name]);
         } else {
             parent::__unset($name);

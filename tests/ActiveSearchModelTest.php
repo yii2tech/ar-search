@@ -12,17 +12,21 @@ class ActiveSearchModelTest extends TestCase
     {
         $searchModel = new ActiveSearchModel();
 
-        $searchAttributes = [
-            'name' => 'string'
+        $searchAttributeTypes = [
+            'name' => ActiveSearchModel::TYPE_STRING
         ];
-        $searchModel->setSearchAttributes($searchAttributes);
-        $this->assertEquals($searchAttributes, $searchModel->getSearchAttributes());
+        $searchModel->setSearchAttributeTypes($searchAttributeTypes);
+        $this->assertEquals($searchAttributeTypes, $searchModel->getSearchAttributeTypes());
 
         $rules = [
             ['name', 'string'],
         ];
         $searchModel->setRules($rules);
         $this->assertEquals($rules, $searchModel->getRules());
+
+        $formName = 'Some';
+        $searchModel->setFormName($formName);
+        $this->assertEquals($formName, $searchModel->getFormName());
     }
 
     public function testSetupModel()
@@ -47,6 +51,19 @@ class ActiveSearchModelTest extends TestCase
     }
 
     /**
+     * @depends testSetupModel
+     */
+    public function testHasModel()
+    {
+        $searchModel = new ActiveSearchModel();
+
+        $this->assertFalse($searchModel->hasModel());
+
+        $searchModel->setModel(Item::className());
+        $this->assertTrue($searchModel->hasModel());
+    }
+
+    /**
      * @depends testSetup
      * @depends testSetupModel
      */
@@ -61,7 +78,25 @@ class ActiveSearchModelTest extends TestCase
             'status' => ActiveSearchModel::TYPE_INTEGER,
             'price' => ActiveSearchModel::TYPE_FLOAT,
         ];
-        $this->assertEquals($expectedSearchAttributes, $searchModel->getSearchAttributes());
+        $this->assertEquals($expectedSearchAttributes, $searchModel->getSearchAttributeTypes());
+    }
+
+    /**
+     * @depends testSetup
+     * @depends testSetupModel
+     */
+    public function testFormName()
+    {
+        $searchModel = new ActiveSearchModel();
+        $this->assertEquals('Search', $searchModel->formName());
+
+        $searchModel = new ActiveSearchModel();
+        $searchModel->setModel(Item::className());
+        $this->assertEquals('ItemSearch', $searchModel->formName());
+
+        $searchModel = new ActiveSearchModel();
+        $searchModel->setFormName('Some');
+        $this->assertEquals('Some', $searchModel->formName());
     }
 
     /**
@@ -70,7 +105,7 @@ class ActiveSearchModelTest extends TestCase
     public function testAttributeAccess()
     {
         $searchModel = new ActiveSearchModel();
-        $searchModel->setSearchAttributes([
+        $searchModel->setSearchAttributeTypes([
             'id' => ActiveSearchModel::TYPE_INTEGER,
             'name' => ActiveSearchModel::TYPE_STRING,
         ]);
@@ -118,6 +153,7 @@ class ActiveSearchModelTest extends TestCase
     {
         $searchModel = new ActiveSearchModel();
         $searchModel->setModel(Item::className());
+        $searchModel->setFormName('');
 
         $dataProvider = $searchModel->search(['name' => '', 'status' => '', 'price' => '']);
         $this->assertEquals(10, $dataProvider->getTotalCount());
