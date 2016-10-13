@@ -22,7 +22,48 @@ use yii\validators\StringValidator;
 use yii2tech\ar\search\validators\NumberCompareValidator;
 
 /**
- * ActiveSearchModel
+ * ActiveSearchModel is a special kind of [[Model]] dedicated to the searching of ActiveRecord lists.
+ *
+ * This model is able to fetch its attributes, validation rules and filtering logic from the 'slave'
+ * source ActiveRecord model specified via [[model]]. Thus you do not need to declare a separated model
+ * class for searching and define a filter logic.
+ * For example:
+ *
+ * ```php
+ * use yii2tech\ar\search\ActiveSearchModel;
+ *
+ * $searchModel = new ActiveSearchModel([
+ *     'model' => 'app\models\Item'
+ * ]);
+ * $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
+ * ```
+ *
+ * ActiveSearchModel picks all 'safe' attributes of the 'slave' model and use them as own attributes.
+ * Thus you can use any attribute, which is marked as 'safe' in related ActiveRecord model in the scope
+ * of this class, creating web form inputs and so on.
+ * For example:
+ *
+ * ```php
+ * <?php
+ * use yii2tech\ar\search\ActiveSearchModel;
+ * use yii\widgets\ActiveForm;
+ *
+ * $searchModel = new ActiveSearchModel([
+ *     'model' => 'app\models\Item'
+ * ]);
+ * ?>
+ * <?php $form = ActiveForm::begin(); ?>
+ *
+ * <?= $form->field($model, 'name')->textInput() ?>
+ * <?= $form->field($model, 'price')->textInput() ?>
+ * ...
+ *
+ * <?php ActiveForm::end(); ?>
+ * ```
+ *
+ * > Note: this class has been designed to cover only the simplest cases. Do not hesitate to
+ * create a separated search model in case it requires complex logic of composition of the
+ * search query.
  *
  * @property ActiveRecordInterface|Model|array|string|callable $model model to be used for filter attributes validation.
  * @property string $formName form name to be used at [[formName()]] method.

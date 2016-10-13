@@ -1,7 +1,7 @@
 {
     "name": "yii2tech/ar-search",
     "description": "Provides unified search model for Yii ActiveRecord",
-    "keywords": ["yii2", "active", "record", "search"],
+    "keywords": ["yii2", "active", "record", "search", "filter"],
     "type": "yii2-extension",
     "license": "BSD-3-Clause",
     "support": {
