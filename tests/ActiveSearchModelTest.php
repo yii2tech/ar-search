@@ -3,6 +3,7 @@
 namespace yii2tech\tests\unit\ar\search;
 
 use yii\data\ActiveDataProvider;
+use yii2tech\ar\search\ActiveSearchEvent;
 use yii2tech\ar\search\ActiveSearchModel;
 use yii2tech\tests\unit\ar\search\data\Item;
 
@@ -208,5 +209,21 @@ class ActiveSearchModelTest extends TestCase
 
         $dataProvider = $searchModel->search(['name' => 'item5', 'status' => '', 'price' => '']);
         $this->assertEquals(1, $dataProvider->getTotalCount());
+    }
+
+    /**
+     * @depends testSearch
+     */
+    public function testAfterCreateQuery()
+    {
+        $searchModel = new ActiveSearchModel();
+        $searchModel->setModel(Item::className());
+        $searchModel->setFormName('');
+        $searchModel->on(ActiveSearchModel::EVENT_AFTER_CREATE_QUERY, function(ActiveSearchEvent $event) {
+            $event->query->andWhere(['status' => 1]);
+        });
+
+        $dataProvider = $searchModel->search(['name' => '', 'status' => '', 'price' => '']);
+        $this->assertEquals(2, $dataProvider->getTotalCount());
     }
 }

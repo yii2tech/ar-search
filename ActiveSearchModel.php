@@ -34,6 +34,11 @@ use yii\validators\StringValidator;
  */
 class ActiveSearchModel extends Model
 {
+    /**
+     * @event ActiveSearchEvent an event that is triggered after search query is created.
+     */
+    const EVENT_AFTER_CREATE_QUERY = 'afterCreateQuery';
+
     const TYPE_INTEGER = 'integer';
     const TYPE_FLOAT = 'float';
     const TYPE_BOOLEAN = 'boolean';
@@ -299,6 +304,8 @@ class ActiveSearchModel extends Model
             return $dataProvider;
         }
 
+        $this->afterCreateQuery($query);
+
         $filterOperators = $this->getFilterOperators();
         foreach ($this->getSearchAttributeTypes() as $attribute => $type) {
             if (isset($filterOperators[$type])) {
@@ -495,5 +502,20 @@ class ActiveSearchModel extends Model
         } else {
             parent::__unset($name);
         }
+    }
+
+    // Events :
+
+    /**
+     * This method is invoked before search query is created.
+     * The default implementation raises the [[EVENT_AFTER_CREATE_QUERY]] event.
+     * @param \yii\db\ActiveQueryInterface $query active query instance.
+     */
+    public function afterCreateQuery($query)
+    {
+        $event = new ActiveSearchEvent();
+        $event->query = $query;
+
+        $this->trigger(self::EVENT_AFTER_CREATE_QUERY, $event);
     }
 }
