@@ -83,6 +83,31 @@ class TestCase extends \PHPUnit_Framework_TestCase
         $db->createCommand()->batchInsert('Item', ['name', 'status', 'price'], [
             ['item1', 1, '10.5'],
             ['item2', 2, '20.5'],
+            ['item3', 3, '20'],
+            ['item4', 4, '50.2'],
+            ['item5', 5, '40.7'],
+            ['item6', 1, '10.5'],
+            ['item7', 2, '20.5'],
+            ['item8', 3, '20'],
+            ['item9', 4, '50.2'],
+            ['item0', 5, '40.7'],
         ])->execute();
+    }
+
+    /**
+     * Invokes object method, even if it is private or protected.
+     * @param object $object object.
+     * @param string $method method name.
+     * @param array $args method arguments
+     * @return mixed method result
+     */
+    protected function invoke($object, $method, array $args = [])
+    {
+        $classReflection = new \ReflectionClass(get_class($object));
+        $methodReflection = $classReflection->getMethod($method);
+        $methodReflection->setAccessible(true);
+        $result = $methodReflection->invokeArgs($object, $args);
+        $methodReflection->setAccessible(false);
+        return $result;
     }
 }

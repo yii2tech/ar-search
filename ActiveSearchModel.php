@@ -13,6 +13,7 @@ use yii\base\Model;
 use yii\data\ActiveDataProvider;
 use yii\db\ActiveRecordInterface;
 use yii\validators\BooleanValidator;
+use yii\validators\EachValidator;
 use yii\validators\FilterValidator;
 use yii\validators\NumberValidator;
 use yii\validators\RangeValidator;
@@ -28,15 +29,29 @@ use yii\validators\StringValidator;
  */
 class ActiveSearchModel extends Model
 {
+    const TYPE_INTEGER = 'integer';
+    const TYPE_FLOAT = 'float';
+    const TYPE_BOOLEAN = 'boolean';
+    const TYPE_STRING = 'string';
+    const TYPE_ARRAY = 'array';
+
     /**
      * @var ActiveDataProvider|array|callable data provider to be used.
      */
     public $dataProvider;
+    /**
+     * @var string form name to be used at [[formName()]] method.
+     */
+    public $formName = '';
 
     /**
      * @var ActiveRecordInterface|Model|array|string|callable model to be used for filter attributes validation.
      */
     private $_model;
+    /**
+     * @var array list of attributes in format: `[name => value]`
+     */
+    private $_attributes;
     /**
      * @var array search attribute names
      */
@@ -83,7 +98,7 @@ class ActiveSearchModel extends Model
     public function getSearchAttributes()
     {
         if ($this->_searchAttributes === null) {
-            ;
+            $this->populateFromModel($this->getModel());
         }
         return $this->_searchAttributes;
     }
@@ -97,18 +112,18 @@ class ActiveSearchModel extends Model
     }
 
     /**
-     * @return array
+     * @return array validation rules.
      */
     public function getRules()
     {
         if ($this->_rules === null) {
-            ;
+            $this->populateFromModel($this->getModel());
         }
         return $this->_rules;
     }
 
     /**
-     * @param array $rules
+     * @param array $rules validation rules in format of [[rules()]] return value.
      */
     public function setRules($rules)
     {
@@ -130,7 +145,7 @@ class ActiveSearchModel extends Model
      */
     public function formName()
     {
-        return '';
+        return $this->formName;
     }
 
     /**
@@ -138,7 +153,7 @@ class ActiveSearchModel extends Model
      */
     public function rules()
     {
-        return $this->extractValidationRules($this->getModel());
+        return $this->getRules();
     }
 
     /**
@@ -178,29 +193,114 @@ class ActiveSearchModel extends Model
             return $dataProvider;
         }
 
-        foreach ($this->safeAttributes() as $attribute) {
-            $query->andFilterWhere([$attribute => $this->{$attribute}]);
+        foreach ($this->getSearchAttributes() as $attribute => $type) {
+            switch ($type) {
+                case self::TYPE_STRING:
+                    $query->andFilterWhere(['like', $attribute, $this->{$attribute}]);
+                    break;
+                case self::TYPE_ARRAY:
+                    $query->andFilterWhere(['in', $attribute, $this->{$attribute}]);
+                    break;
+                default:
+                    $query->andFilterWhere([$attribute => $this->{$attribute}]);
+            }
         }
 
         return $dataProvider;
     }
 
     /**
-     * @param Model $model
-     * @return array
+     * Populates internal fields from the given model.
+     * @param Model $model source model instance.
      */
-    protected function extractValidationRules($model)
+    protected function populateFromModel($model)
     {
+        $metaData = $this->extractModelMetaData($model);
+
+        if ($this->_searchAttributes === null) {
+            $this->_searchAttributes = $metaData['attributes'];
+        }
+
+        if ($this->_rules === null) {
+            $this->_rules = $metaData['rules'];
+        }
+    }
+
+    /**
+     * Extract meta data from give model.
+     * Following keys will be return in result array:
+     *
+     * - attributes: array, list of model attributes with types in format: `[attribute => type]`
+     * - rules: array, list of search validation rules
+     *
+     * @param Model $model source model instance.
+     * @return array meta data.
+     */
+    protected function extractModelMetaData($model)
+    {
+        $attributeTypes = [];
+        foreach ($model->activeAttributes() as $attribute) {
+            $attributeTypes[$attribute] = 'string';
+        }
+
         $rules = [
-            [$model->activeAttributes(), 'safe']
+            [array_keys($attributeTypes), 'safe']
         ];
         foreach ($model->getValidators() as $validator) {
-            if ($validator instanceof FilterValidator || $validator instanceof NumberValidator || $validator instanceof StringValidator || $validator instanceof BooleanValidator || $validator instanceof RangeValidator) {
+            $type = null;
+            if ($validator instanceof FilterValidator || $validator instanceof RangeValidator) {
                 $rules[] = $validator;
+            } elseif ($validator instanceof NumberValidator) {
+                $rules[] = $validator;
+                $type = $validator->integerOnly ? self::TYPE_INTEGER : self::TYPE_FLOAT;
+            } elseif ($validator instanceof BooleanValidator) {
+                $rules[] = $validator;
+                $type = self::TYPE_BOOLEAN;
+            } elseif ($validator instanceof StringValidator) {
+                $rules[] = $validator;
+                $type = self::TYPE_STRING;
+            } elseif ($validator instanceof EachValidator) {
+                $type = self::TYPE_ARRAY;
+            }
+
+            if ($type !== null) {
+                foreach ((array)$validator->attributes as $attribute) {
+                    $attributeTypes[$attribute] = $type;
+                }
             }
         }
 
-        return $rules;
+        if ($model instanceof ActiveRecordInterface) {
+            foreach ($model->primaryKey() as $key => $attribute) {
+                if (!isset($attributeTypes[$attribute])) {
+                    $type = self::TYPE_STRING;
+                    if ($model instanceof \yii\db\ActiveRecord) {
+                        switch ($model->getTableSchema()->getColumn($attribute)->phpType) {
+                            case 'integer':
+                                $type = self::TYPE_INTEGER;
+                                break;
+                            case 'boolean':
+                                $type = self::TYPE_BOOLEAN;
+                                break;
+                            case 'double':
+                            case 'float':
+                                $type = self::TYPE_FLOAT;
+                                break;
+                            case 'string':
+                            case 'resource':
+                                $type = self::TYPE_STRING;
+                                break;
+                        }
+                    }
+                    $attributeTypes[$attribute] = $type;
+                }
+            }
+        }
+
+        return [
+            'attributes' => $attributeTypes,
+            'rules' => $rules,
+        ];
     }
 
     /**
@@ -215,5 +315,79 @@ class ActiveSearchModel extends Model
             $dataProvider = ActiveDataProvider::className();
         }
         return Yii::createObject($dataProvider);
+    }
+
+    // Property access :
+
+    /**
+     * @inheritdoc
+     */
+    public function canGetProperty($name, $checkVars = true, $checkBehaviors = true)
+    {
+        if (isset($this->getSearchAttributes()[$name])) {
+            return true;
+        }
+        return parent::canGetProperty($name, $checkVars, $checkBehaviors);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function canSetProperty($name, $checkVars = true, $checkBehaviors = true)
+    {
+        if (isset($this->getSearchAttributes()[$name])) {
+            return true;
+        }
+        return parent::canSetProperty($name, $checkVars, $checkBehaviors);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function __get($name)
+    {
+        if (isset($this->_attributes[$name])) {
+            return $this->_attributes[$name];
+        } elseif (isset($this->getSearchAttributes()[$name])) {
+            return null;
+        } else {
+            return parent::__get($name);
+        }
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function __set($name, $value)
+    {
+        if (isset($this->getSearchAttributes()[$name])) {
+            $this->_attributes[$name] = $value;
+        } else {
+            parent::__set($name, $value);
+        }
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function __isset($name)
+    {
+        if (isset($this->_attributes[$name])) {
+            return true;
+        } else {
+            return parent::__isset($name);
+        }
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function __unset($name)
+    {
+        if (isset($this->getSearchAttributes()[$name])) {
+            unset($this->_attributes[$name]);
+        } else {
+            parent::__unset($name);
+        }
     }
 }
