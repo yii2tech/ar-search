@@ -61,9 +61,9 @@ use yii2tech\ar\search\validators\NumberCompareValidator;
  * <?php ActiveForm::end(); ?>
  * ```
  *
- * > Note: this class has been designed to cover only the simplest cases. Do not hesitate to
- * create a separated search model in case it requires complex logic of composition of the
- * search query.
+ * > Note: Do not abuse usage of this class. It has been designed to cover only the simplest
+ * cases, when search logic is trivial. You should always create a separated search model in case, it
+ * requires complex logic of composition of the search query.
  *
  * @property ActiveRecordInterface|Model|array|string|callable $model model to be used for filter attributes validation.
  * @property string $formName form name to be used at [[formName()]] method.
