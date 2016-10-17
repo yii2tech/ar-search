@@ -142,6 +142,18 @@ class ActiveSearchModelTest extends TestCase
         $this->assertFalse(isset($searchModel->id));
     }
 
+    /**
+     * @depends testSetupModel
+     * @depends testAttributeAccess
+     */
+    public function testModelPropertyAccess()
+    {
+        $searchModel = new ActiveSearchModel();
+
+        $searchModel->model = Item::className();
+        $this->assertTrue($searchModel->model instanceof Item);
+    }
+
     public function testCreateDataProvider()
     {
         $searchModel = new ActiveSearchModel();

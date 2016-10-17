@@ -539,6 +539,9 @@ class ActiveSearchModel extends Model
      */
     public function canGetProperty($name, $checkVars = true, $checkBehaviors = true)
     {
+        if (in_array($name, ['model', 'searchAttributeTypes'], true)) {
+            return true;
+        }
         if (isset($this->getSearchAttributeTypes()[$name])) {
             return true;
         }
@@ -550,6 +553,9 @@ class ActiveSearchModel extends Model
      */
     public function canSetProperty($name, $checkVars = true, $checkBehaviors = true)
     {
+        if (in_array($name, ['model', 'searchAttributeTypes'], true)) {
+            return true;
+        }
         if (isset($this->getSearchAttributeTypes()[$name])) {
             return true;
         }
@@ -561,13 +567,16 @@ class ActiveSearchModel extends Model
      */
     public function __get($name)
     {
-        if (isset($this->_attributes[$name])) {
-            return $this->_attributes[$name];
-        } elseif (isset($this->getSearchAttributeTypes()[$name])) {
-            return null;
-        } else {
+        if (in_array($name, ['model', 'searchAttributeTypes'], true)) {
             return parent::__get($name);
         }
+        if (isset($this->_attributes[$name])) {
+            return $this->_attributes[$name];
+        }
+        if (isset($this->getSearchAttributeTypes()[$name])) {
+            return null;
+        }
+        return parent::__get($name);
     }
 
     /**
@@ -575,7 +584,9 @@ class ActiveSearchModel extends Model
      */
     public function __set($name, $value)
     {
-        if (isset($this->getSearchAttributeTypes()[$name])) {
+        if (in_array($name, ['model', 'searchAttributeTypes'], true)) {
+            parent::__set($name, $value);
+        } elseif (isset($this->getSearchAttributeTypes()[$name])) {
             $this->_attributes[$name] = $value;
         } else {
             parent::__set($name, $value);
@@ -599,7 +610,9 @@ class ActiveSearchModel extends Model
      */
     public function __unset($name)
     {
-        if (isset($this->getSearchAttributeTypes()[$name])) {
+        if (in_array($name, ['model', 'searchAttributeTypes'], true)) {
+            parent::__unset($name);
+        } elseif (isset($this->getSearchAttributeTypes()[$name])) {
             unset($this->_attributes[$name]);
         } else {
             parent::__unset($name);
