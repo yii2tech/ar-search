@@ -5,15 +5,15 @@ namespace yii2tech\tests\unit\ar\search\data;
 use yii\db\ActiveRecord;
 
 /**
- * @property integer $id
+ * @property int $id
  * @property string $name
- * @property integer $status
+ * @property int $status
  * @property float $price
  */
 class Item extends ActiveRecord
 {
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public static function tableName()
     {
@@ -21,7 +21,7 @@ class Item extends ActiveRecord
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function rules()
     {

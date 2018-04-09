@@ -31,7 +31,7 @@ class NumberCompareValidatorTest extends TestCase
      * @dataProvider dataProviderValidateAttribute
      *
      * @param mixed $value
-     * @param boolean $isValid
+     * @param bool $isValid
      */
     public function testValidateAttribute($value, $isValid)
     {
@@ -63,7 +63,7 @@ class NumberCompareValidatorTest extends TestCase
      * @dataProvider dataProviderValidateIntegerAttribute
      *
      * @param mixed $value
-     * @param boolean $isValid
+     * @param bool $isValid
      */
     public function testValidateIntegerAttribute($value, $isValid)
     {
@@ -96,7 +96,7 @@ class NumberCompareValidatorTest extends TestCase
      * @dataProvider dataProviderValidateValue
      *
      * @param mixed $value
-     * @param boolean $isValid
+     * @param bool $isValid
      */
     public function testValidateValue($value, $isValid)
     {

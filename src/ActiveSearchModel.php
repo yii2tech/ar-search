@@ -152,7 +152,7 @@ class ActiveSearchModel extends Model
         if (!is_object($this->_model) || $this->_model instanceof \Closure) {
             $model = Yii::createObject($this->_model);
             if (!$model instanceof Model) {
-                throw new InvalidConfigException('`' . get_class($this) . '::model` should be an instance of `' . Model::className() . '` or its DI compatible configuration.');
+                throw new InvalidConfigException('`' . get_class($this) . '::$model` should be an instance of `' . Model::className() . '` or its DI compatible configuration.');
             }
             $this->_model = $model;
         }
@@ -167,14 +167,14 @@ class ActiveSearchModel extends Model
     {
         if (is_object($model)) {
             if (!$model instanceof ActiveRecordInterface && !$model instanceof \Closure) {
-                throw new InvalidConfigException('`' . get_class($this) . '::model` should be an instance of `' . Model::className() . '` or its DI compatible configuration.');
+                throw new InvalidConfigException('`' . get_class($this) . '::$model` should be an instance of `' . Model::className() . '` or its DI compatible configuration.');
             }
         }
         $this->_model = $model;
     }
 
     /**
-     * @return boolean whether [[model]] is populated.
+     * @return bool whether [[model]] is populated.
      */
     public function hasModel()
     {
@@ -316,7 +316,7 @@ class ActiveSearchModel extends Model
     // Model specific :
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function attributes()
     {
@@ -324,7 +324,7 @@ class ActiveSearchModel extends Model
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function formName()
     {
@@ -332,7 +332,7 @@ class ActiveSearchModel extends Model
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function rules()
     {
@@ -340,7 +340,7 @@ class ActiveSearchModel extends Model
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function attributeLabels()
     {
@@ -351,7 +351,7 @@ class ActiveSearchModel extends Model
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function attributeHints()
     {
@@ -535,7 +535,7 @@ class ActiveSearchModel extends Model
     // Property access :
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function canGetProperty($name, $checkVars = true, $checkBehaviors = true)
     {
@@ -549,7 +549,7 @@ class ActiveSearchModel extends Model
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function canSetProperty($name, $checkVars = true, $checkBehaviors = true)
     {
@@ -563,7 +563,7 @@ class ActiveSearchModel extends Model
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function __get($name)
     {
@@ -580,7 +580,7 @@ class ActiveSearchModel extends Model
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function __set($name, $value)
     {
@@ -594,19 +594,18 @@ class ActiveSearchModel extends Model
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function __isset($name)
     {
         if (isset($this->_attributes[$name])) {
             return true;
-        } else {
-            return parent::__isset($name);
         }
+        return parent::__isset($name);
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function __unset($name)
     {

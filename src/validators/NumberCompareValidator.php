@@ -19,11 +19,11 @@ use yii\validators\NumberValidator;
 class NumberCompareValidator extends NumberValidator
 {
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public $integerPattern = '/^\s*(<>|>=|>|<=|<|=)?\s*[+-]?\d+\s*$/';
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public $numberPattern = '/^\s*(<>|>=|>|<=|<|=)?\s*[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?\s*$/';
 }
