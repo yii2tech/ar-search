@@ -451,7 +451,7 @@ class ActiveSearchModel extends Model
         $rules = [
             [array_keys($attributeTypes), 'safe']
         ];
-        foreach ($model->getValidators() as $validator) {
+        foreach ($model->getActiveValidators() as $validator) {
             $type = null;
             if ($validator instanceof FilterValidator || $validator instanceof RangeValidator) {
                 $rules[] = $validator;
