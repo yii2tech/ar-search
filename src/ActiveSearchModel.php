@@ -22,10 +22,10 @@ use yii\validators\StringValidator;
 use yii2tech\ar\search\validators\NumberCompareValidator;
 
 /**
- * ActiveSearchModel is a special kind of [[Model]] dedicated to the searching of ActiveRecord lists.
+ * ActiveSearchModel is a special kind of {@see Model} dedicated to the searching of ActiveRecord lists.
  *
  * This model is able to fetch its attributes, validation rules and filtering logic from the 'slave'
- * source ActiveRecord model specified via [[model]]. Thus you do not need to declare a separated model
+ * source ActiveRecord model specified via {@see model}. Thus you do not need to declare a separated model
  * class for searching and define a filter logic.
  * For example:
  *
@@ -66,9 +66,9 @@ use yii2tech\ar\search\validators\NumberCompareValidator;
  * requires complex logic of composition of the search query.
  *
  * @property ActiveRecordInterface|Model|array|string|callable $model model to be used for filter attributes validation.
- * @property string $formName form name to be used at [[formName()]] method.
+ * @property string $formName form name to be used at {@see formName()} method.
  * @property array $searchAttributeTypes array search attribute types in format: `[attribute => type]`.
- * @property array $rules validation rules in format of [[rules()]] return value.
+ * @property array $rules validation rules in format of {@see rules()} return value.
  * @property array $filterOperators array filter operators in format: `[type => operator]`.
  * @property array|string $compareAllowedAttributes list of search attributes, which are allowed to be filter by comparison with operators `>`, `<`, `=` and so on.
  *
@@ -104,7 +104,7 @@ class ActiveSearchModel extends Model
     private $_attributes;
     /**
      * @var array search attribute types in format: `[attribute => type]`.
-     * Result of the [[attributes()]] method of this model will be composed from this field.
+     * Result of the {@see attributes()} method of this model will be composed from this field.
      */
     private $_searchAttributeTypes;
     /**
@@ -112,7 +112,7 @@ class ActiveSearchModel extends Model
      */
     private $_rules;
     /**
-     * @var string form name to be used at [[formName()]] method.
+     * @var string form name to be used at {@see formName()} method.
      */
     private $_formName;
     /**
@@ -174,7 +174,7 @@ class ActiveSearchModel extends Model
     }
 
     /**
-     * @return bool whether [[model]] is populated.
+     * @return bool whether {@see model} is populated.
      */
     public function hasModel()
     {
@@ -212,7 +212,7 @@ class ActiveSearchModel extends Model
     }
 
     /**
-     * @param array $rules validation rules in format of [[rules()]] return value.
+     * @param array $rules validation rules in format of {@see rules()} return value.
      */
     public function setRules($rules)
     {
@@ -220,7 +220,7 @@ class ActiveSearchModel extends Model
     }
 
     /**
-     * @return string form name to be used at [[formName()]] method.
+     * @return string form name to be used at {@see formName()} method.
      */
     public function getFormName()
     {
@@ -235,7 +235,7 @@ class ActiveSearchModel extends Model
     }
 
     /**
-     * @param string $formName form name to be used at [[formName()]] method.
+     * @param string $formName form name to be used at {@see formName()} method.
      */
     public function setFormName($formName)
     {
@@ -262,7 +262,7 @@ class ActiveSearchModel extends Model
     }
 
     /**
-     * Determines default value [[filterOperators]].
+     * Determines default value {@see filterOperators}.
      * @return array filter operators in format: `[type => operator]`
      */
     protected function defaultFilterOperators()
@@ -519,7 +519,7 @@ class ActiveSearchModel extends Model
     }
 
     /**
-     * Creates new data provider from [[dataProvider]].
+     * Creates new data provider from {@see dataProvider}.
      * @return ActiveDataProvider data provider instance.
      * @throws InvalidConfigException on invalid configuration.
      */
@@ -623,7 +623,7 @@ class ActiveSearchModel extends Model
     /**
      * This method is invoked before search query is created.
      * At this stage this model has been already successfully validated.
-     * The default implementation raises the [[EVENT_AFTER_CREATE_QUERY]] event.
+     * The default implementation raises the {@see EVENT_AFTER_CREATE_QUERY} event.
      * @param \yii\db\ActiveQueryInterface $query active query instance.
      */
     public function afterCreateQuery($query)

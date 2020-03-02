@@ -10,8 +10,8 @@ This extension provides unified search model for Yii ActiveRecord.
 
 For license information check the [LICENSE](LICENSE.md)-file.
 
-[![Latest Stable Version](https://poser.pugx.org/yii2tech/ar-search/v/stable.png)](https://packagist.org/packages/yii2tech/ar-search)
-[![Total Downloads](https://poser.pugx.org/yii2tech/ar-search/downloads.png)](https://packagist.org/packages/yii2tech/ar-search)
+[![Latest Stable Version](https://img.shields.io/packagist/v/yii2tech/ar-search.svg)](https://packagist.org/packages/yii2tech/ar-search)
+[![Total Downloads](https://img.shields.io/packagist/dt/yii2tech/ar-search.svg)](https://packagist.org/packages/yii2tech/ar-search)
 [![Build Status](https://travis-ci.org/yii2tech/ar-search.svg?branch=master)](https://travis-ci.org/yii2tech/ar-search)
 
 
@@ -39,14 +39,16 @@ Usage
 -----
 
 This extension provides unified search model for Yii ActiveRecord via special model class -
-[[\yii2tech\ar\search\ActiveSearchModel]].
+`\yii2tech\ar\search\ActiveSearchModel`.
 
 This model is able to fetch its attributes, validation rules and filtering logic from the 'slave'
-source ActiveRecord model specified via [[\yii2tech\ar\search\ActiveSearchModel::model]].
+source ActiveRecord model specified via `\yii2tech\ar\search\ActiveSearchModel::$model`.
 Thus you do not need to declare a separated model class for searching and define a filter logic.
 For example:
 
 ```php
+<?php
+
 use yii2tech\ar\search\ActiveSearchModel;
 
 $searchModel = new ActiveSearchModel([
@@ -60,6 +62,8 @@ Thus you can use any attribute, which is marked as 'safe' in related ActiveRecor
 of this class. For example:
 
 ```php
+<?php
+
 namespace app\models;
 
 // ActiveRecord to be searched:
@@ -111,15 +115,15 @@ $searchModel = new ActiveSearchModel([
 
 Attribute labels and hints are also inherited from the 'slave' model.
 
-The main method of [[\yii2tech\ar\search\ActiveSearchModel]] is `search()`. It loads filter attributes
-from given data array, validates them an creates a [[\yii\data\ActiveDataProvider]] instance applying
+The main method of `\yii2tech\ar\search\ActiveSearchModel` is `search()`. It loads filter attributes
+from given data array, validates them an creates a `\yii\data\ActiveDataProvider` instance applying
 own attributes as a query filter condition.
 
 `ActiveSearchModel` uses a sophisticated logic for the query filtering, based on the attribute types,
-specified by [[\yii2tech\ar\search\ActiveSearchModel::$searchAttributeTypes]], which value is extracted
-from [[\yii2tech\ar\search\ActiveSearchModel::$model]] by default and filter operators list, specified via
-[[\yii2tech\ar\search\ActiveSearchModel::$filterOperators]].
-By default [[\yii\db\QueryInterface::andFilterWhere()]] will be used for the filter composition. For the
+specified by `\yii2tech\ar\search\ActiveSearchModel::$searchAttributeTypes`, which value is extracted
+from `\yii2tech\ar\search\ActiveSearchModel::$model` by default and filter operators list, specified via
+`\yii2tech\ar\search\ActiveSearchModel::$filterOperators`.
+By default `\yii\db\QueryInterface::andFilterWhere()` will be used for the filter composition. For the
 'string' attributes it will be used with 'like' operator. For 'integer' and 'float' ('double') method
 `andFilterCompare()` will be used, if it is available.
 
@@ -131,10 +135,12 @@ requires complex logic of composition of the search query.
 ## Adjusting Data Provider <span id="adjusting-data-provider"></span>
 
 You may want to change some settings of the data provider, created by the `search()` method: change
-pagination or sort settings and so on. You can do this via [[\yii2tech\ar\search\ActiveSearchModel::$dataProvider]].
+pagination or sort settings and so on. You can do this via `\yii2tech\ar\search\ActiveSearchModel::$dataProvider`.
 For example:
 
 ```php
+<?php
+
 use yii2tech\ar\search\ActiveSearchModel;
 
 $searchModel = new ActiveSearchModel([
@@ -153,10 +159,12 @@ echo $dataProvider->pagination->defaultPageSize; // outputs `40`
 
 ## Adjusting Search Query <span id="adjusting-search-query"></span>
 
-You may use [[\yii2tech\ar\search\ActiveSearchModel::EVENT_AFTER_CREATE_QUERY]] event to adjust the search query instance
+You may use `\yii2tech\ar\search\ActiveSearchModel::EVENT_AFTER_CREATE_QUERY` event to adjust the search query instance
 adding relation eager loading or permanent conditions. For example:
 
 ```php
+<?php
+
 use yii2tech\ar\search\ActiveSearchModel;
 use yii2tech\ar\search\ActiveSearchEvent;
 
@@ -170,9 +178,11 @@ $searchModel->on(ActiveSearchModel::EVENT_AFTER_CREATE_QUERY, function(ActiveSea
 });
 ```
 
-You may also specify query object directly via [[\yii2tech\ar\search\ActiveSearchModel::$dataProvider]]. For example:
+You may also specify query object directly via `\yii2tech\ar\search\ActiveSearchModel::$dataProvider`. For example:
 
 ```php
+<?php
+
 use yii2tech\ar\search\ActiveSearchModel;
 use yii\data\ActiveDataProvider;
 use app\models\Item;
@@ -192,12 +202,14 @@ $searchModel = new ActiveSearchModel([
 
 ## Filter Operators <span id="filter-operators"></span>
 
-You can control the operators to be used for the query filtering via [[\yii2tech\ar\search\ActiveSearchModel::$filterOperators]].
-It defines a mapping between the attribute type and the operator to be used with [[\yii\db\QueryInterface::andFilterWhere()]].
+You can control the operators to be used for the query filtering via `\yii2tech\ar\search\ActiveSearchModel::$filterOperators`.
+It defines a mapping between the attribute type and the operator to be used with `\yii\db\QueryInterface::andFilterWhere()`.
 Each value can be a scalar operator name or a PHP callback, accepting query instance, attribute name and value.
 For example:
 
 ```php
+<?php
+
 use yii2tech\ar\search\ActiveSearchModel;
 
 $searchModel = new ActiveSearchModel([
@@ -216,11 +228,13 @@ $searchModel = new ActiveSearchModel([
 ```
 
 `ActiveSearchModel` allows filtering for the attributes using `andFilterCompare()` method of the query (for example:
-[[\yii\db\Query::andFilterCompare()]]), which allows specifying filter value in format: `{operator}{value}` (for
+`\yii\db\Query::andFilterCompare()`), which allows specifying filter value in format: `{operator}{value}` (for
 example: `>10`, `<=100` and so on). The list of attribute names, for which usage of such comparison is allowed is controlled
-by [[\yii2tech\ar\search\ActiveSearchModel::$compareAllowedAttributes]]. For example:
+by `\yii2tech\ar\search\ActiveSearchModel::$compareAllowedAttributes`. For example:
 
 ```php
+<?php
+
 use yii2tech\ar\search\ActiveSearchModel;
 
 $searchModel = new ActiveSearchModel([
@@ -233,16 +247,18 @@ $searchModel = new ActiveSearchModel([
 
 You can set `compareAllowedAttributes` to `*`, which indicates any float or integer attribute will be allowed for comparison.
 
-> Note: [[\yii2tech\ar\search\ActiveSearchModel::$filterOperators]] take precedence over [[\yii2tech\ar\search\ActiveSearchModel::$compareAllowedAttributes]].
+> Note: `\yii2tech\ar\search\ActiveSearchModel::$filterOperators` take precedence over `\yii2tech\ar\search\ActiveSearchModel::$compareAllowedAttributes`.
 
 
 ## Working Without 'Slave' Model <span id="working-without-model"></span>
 
-Although in most cases setup of [[\yii2tech\ar\search\ActiveSearchModel::$model]] is a quickest way to configure `ActiveSearchModel`
+Although in most cases setup of `\yii2tech\ar\search\ActiveSearchModel::$model` is a quickest way to configure `ActiveSearchModel`
 instance, it is not mandatory. You can avoid setup of the 'slave' model and configure all search related properties
 directly. For example:
 
 ```php
+<?php
+
 use yii2tech\ar\search\ActiveSearchModel;
 use yii\data\ActiveDataProvider;
 use app\models\Item;

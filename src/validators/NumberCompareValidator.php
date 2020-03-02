@@ -10,7 +10,7 @@ namespace yii2tech\ar\search\validators;
 use yii\validators\NumberValidator;
 
 /**
- * NumberCompareValidator is an enhanced version of [[NumberValidator]], which allows value to be prefixed by
+ * NumberCompareValidator is an enhanced version of {@see NumberValidator}, which allows value to be prefixed by
  * compare validator like `=`, `<`, `>` and so on.
  *
  * @author Paul Klimov <klimov.paul@gmail.com>

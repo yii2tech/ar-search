@@ -10,7 +10,7 @@ namespace yii2tech\ar\search;
 use yii\base\ModelEvent;
 
 /**
- * ActiveSearchEvent represents the parameter needed by [[ActiveSearchModel]] events.
+ * ActiveSearchEvent represents the parameter needed by {@see ActiveSearchModel} events.
  *
  * @see ActiveSearchModel
  *

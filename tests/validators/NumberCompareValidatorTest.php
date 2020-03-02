@@ -9,7 +9,7 @@ use yii2tech\tests\unit\ar\search\TestCase;
 class NumberCompareValidatorTest extends TestCase
 {
     /**
-     * Data provider for [[testValidateAttribute()]]
+     * Data provider for {@see testValidateAttribute()}
      * @return array test data.
      */
     public function dataProviderValidateAttribute()
@@ -42,7 +42,7 @@ class NumberCompareValidatorTest extends TestCase
     }
 
     /**
-     * Data provider for [[testValidateIntegerAttribute()]]
+     * Data provider for {@see testValidateIntegerAttribute()}
      * @return array test data.
      */
     public function dataProviderValidateIntegerAttribute()
@@ -74,7 +74,7 @@ class NumberCompareValidatorTest extends TestCase
     }
 
     /**
-     * Data provider for [[testValidateValue()]]
+     * Data provider for {@see testValidateValue()}
      * @return array test data.
      */
     public function dataProviderValidateValue()
