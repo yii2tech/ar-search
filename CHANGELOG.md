@@ -1,8 +1,8 @@
 Yii 2 ActiveRecord Search Model extension Change Log
 ====================================================
 
-1.0.1 Under Development
------------------------
+1.0.1, March 4, 2020
+--------------------
 
 - Bug #1: Fixed source model's scenario ignored while auto-detecting validation rules (fl0v, klimov-paul)
 
